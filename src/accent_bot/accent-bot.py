@@ -7,6 +7,7 @@ import logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
 
+DOWNLOAD_PATH = "../audio"
 
 class AccentBot:
 
@@ -31,10 +32,13 @@ class AccentBot:
     def store(self, bot, update):
         voice = update.message.voice.get_file()
         self.counter += 1
-        voice.download("/Users/ekaterinazinkovskaia/PycharmProjects/accent-bot/src/audio/" + (str)(self.counter))
+        voice.download(DOWNLOAD_PATH + (str)(self.counter))
 
 
 def main():
+
+    # verify folder exists
+
     updater = Updater('874455740:AAF-ipcxqBYcvzBkTS16TKLYCPqkPCcytw0')
     dp = updater.dispatcher
     accent_bot = AccentBot()
