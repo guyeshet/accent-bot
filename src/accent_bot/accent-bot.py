@@ -1,3 +1,5 @@
+import os
+
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import Voice
 import requests
@@ -30,10 +32,12 @@ class AccentBot:
         bot.send_message(chat_id=chat_id, text=text)
 
     def store(self, bot, update):
+        print("reading a voice file")
         voice = update.message.voice.get_file()
         self.counter += 1
-        voice.download(DOWNLOAD_PATH + (str)(self.counter))
-
+        print("received a voice file")
+        voice.download(os.path.join(DOWNLOAD_PATH, (str)(self.counter)))
+        print("saved a voice file")
 
 def main():
 
