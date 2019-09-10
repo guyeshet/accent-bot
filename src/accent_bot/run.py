@@ -91,8 +91,23 @@ class AccentBot:
         bot.send_voice(chat_id=chat_id, voice=open(audio, 'rb'))
 
 
+def get_bot_id():
+    """
+    read a json formatted credentials json and return to bot id
+    :return bot_id:
+    """
+    with open("credentials.json") as f:
+        data = json.load(f)
+        return data["bot_id"]
+
+
 def main():
-    updater = Updater('874455740:AAF-ipcxqBYcvzBkTS16TKLYCPqkPCcytw0')
+
+    # read the config file
+    bot_id = get_bot_id()
+
+    # create the bot updates
+    updater = Updater(bot_id)
 
     dp = updater.dispatcher
     accent_bot = AccentBot()
