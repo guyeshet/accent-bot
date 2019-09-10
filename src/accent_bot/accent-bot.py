@@ -6,12 +6,8 @@ import logging
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-from accent_bot.HelloEcho import Hello
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
-
-hello = Hello()
 
 url = "http://35.198.123.215:8080/bot"
 
@@ -39,29 +35,30 @@ class AccentBot:
 
 
     def echo(self, bot, job):
-        # text = update.message.text
-        # chat_id = update.message.chat_id
-        # bot.send_message(chat_id=chat_id, text=text)
-        text = hello.echo(self.word)
-        bot.send_message(chat_id=job.context, text=text)
+        raise NotImplemented
+        # # text = update.message.text
+        # # chat_id = update.message.chat_id
+        # # bot.send_message(chat_id=chat_id, text=text)
+        # text = hello.echo(self.word)
+        # bot.send_message(chat_id=job.context, text=text)
 
     def store(self, bot, update, job_queue):
         # if(self.word is not None):
         chat_id = update.message.chat_id
+        voice = update.message.voice.get_file()
         # needs a new name to be stored by
         # word_attempt = self.word + '_' + (str)(self.dictionary[self.word])
         # self.dictionary[self.word] += 1
         # audio_name = "../attempts/" + word_attempt + ".oga"
         # voice.download(audio_name)
 
-        job_black_box = job_queue.run_once(self.request, 0, context=chat_id)
-
+        job_black_box = job_queue.run_once(self.request, 0, context=[chat_id, voice])
 
     def request(self, bot, job):
-
-        voice = update.message.voice.get_file()
         headers = {'content-type': 'application/json'}
+        chat_id, voice = job.context
         data = {"path": voice.file_path}
+
         r = requests.post(url, data=json.dumps(data), headers=headers)
 
         text = "Waiting for the response"
@@ -95,6 +92,7 @@ class AccentBot:
         chat_id = update.message.chat_id
         bot.send_message(chat_id=chat_id, text=self.word)
         bot.send_voice(chat_id=chat_id, voice=open(audio, 'rb'))
+
 
 def main():
     updater = Updater('874455740:AAF-ipcxqBYcvzBkTS16TKLYCPqkPCcytw0')
