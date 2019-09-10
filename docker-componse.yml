@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+
+  # change to have everything in one docker
+  bot:
+    build: . # maps the directory that contains the Dockerfile
+    container_name: telegram_bot
+    command: "python src/accent_bot/run.py"
+    ports:
+      - "0.0.0.0:80:80"
