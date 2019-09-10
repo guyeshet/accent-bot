@@ -9,7 +9,9 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
-url = "http://35.198.123.215:8080/bot"
+PREDICTION_URL = "http://35.198.123.215:8080/bot"
+HEADERS = {'content-type': 'application/json'}
+
 
 class AccentBot:
 
@@ -23,58 +25,53 @@ class AccentBot:
         chat_id = update.message.chat_id
         bot.send_message(chat_id=chat_id, text=text)
 
-    # def get_url(self):
-    #     contents = requests.get('https://random.dog/woof.json').json()
-    #     url = contents['url']
-    #     return url
-
-    # used for checking the run of the bot
-
-    # def set_dictionary(self, accent):
-    # set the dictionaries based on the urls?
-
-
     def echo(self, bot, job):
         raise NotImplemented
-        # # text = update.message.text
-        # # chat_id = update.message.chat_id
-        # # bot.send_message(chat_id=chat_id, text=text)
-        # text = hello.echo(self.word)
-        # bot.send_message(chat_id=job.context, text=text)
 
-    def store(self, bot, update, job_queue):
-        # if(self.word is not None):
+    def receive_voice_message(self, bot, update, job_queue):
+        """
+        This method is called every time a voice message is sent
+        we will use it to check the accent prediction
+        :param bot:
+        :param update:
+        :param job_queue:
+        :return:
+        """
+        # get the voice relevant params
         chat_id = update.message.chat_id
+        # details of the voice files (the file url is remote store on telegram)
         voice = update.message.voice.get_file()
-        # needs a new name to be stored by
-        # word_attempt = self.word + '_' + (str)(self.dictionary[self.word])
-        # self.dictionary[self.word] += 1
-        # audio_name = "../attempts/" + word_attempt + ".oga"
-        # voice.download(audio_name)
 
-        job_black_box = job_queue.run_once(self.request, 0, context=[chat_id, voice])
+        # puts the received voice in the queue to handle the prediction
+        job_queue.run_once(self.handle_prediction, 0, context=[chat_id, voice])
 
-    def request(self, bot, job):
-        headers = {'content-type': 'application/json'}
+    def handle_prediction(self, bot, job):
+
+        # unpack the context variables
         chat_id, voice = job.context
         data = {"path": voice.file_path}
-
-        r = requests.post(url, data=json.dumps(data), headers=headers)
 
         text = "Waiting for the response"
         bot.send_message(chat_id=chat_id, text=text)
 
-        text = r.json()
-        text = text.get("predictions")
-        if (int(text) == 0):
+        # post the data to the prediction server and wait for response
+        r = requests.post(PREDICTION_URL,
+                          data=json.dumps(data),
+                          headers=HEADERS)
+
+        # parse the received response to check prediction status
+        response_dict = r.json()
+        status = int(response_dict.get("predictions"))
+
+        # 0 is a correct classification
+        if status == 0:
             text = "Success!"
         else:
-            text = "You suck! Try again!"
+            text = "No there yet... Try again!"
 
         bot.send_message(chat_id=chat_id, text=text)
 
     def get_word(self):
-        # rand_item = self.dictionary[random.randrange(len(self.dictionary))]
         rand_word, attempt = random.choice(list(self.dictionary.items()))
         return rand_word
 
@@ -82,7 +79,7 @@ class AccentBot:
         audio = "../audio/" + self.word + ".oga"
         return audio
 
-    def getWord(self, bot, update, args=None):
+    def get_word_callback(self, bot, update, args=None):
         if args is None:
             word = self.get_word()
         else:
@@ -100,25 +97,22 @@ def main():
     dp = updater.dispatcher
     accent_bot = AccentBot()
 
+    # handling communication start
     dp.add_handler(CommandHandler("start", accent_bot.start))
 
-    dp.add_handler(CommandHandler('new_word', accent_bot.getWord, pass_args=False))
-    dp.add_handler(CommandHandler('get_word', accent_bot.getWord, pass_args=True))
+    # ask for a new word
+    dp.add_handler(CommandHandler('new_word', accent_bot.get_word_callback, pass_args=False))
 
-    # echo_handler = MessageHandler(Filters.text, accent_bot.echo)
-    # dp.add_handler(echo_handler)
+    # get the existing
+    dp.add_handler(CommandHandler('get_word', accent_bot.get_word_callback, pass_args=True))
 
-    audio_handler = MessageHandler(Filters.voice, accent_bot.store, pass_job_queue=True)
+    audio_handler = MessageHandler(Filters.voice, accent_bot.receive_voice_message, pass_job_queue=True)
     dp.add_handler(audio_handler)
-
-    # once the user sends the voice,
-    # we send it to the "black box"
-    # once the black box gives us result we ping it to the user
-    # Ask Guy
 
     updater.start_polling()
     updater.idle()
 
 
 if __name__ == '__main__':
+    # Run the bot
     main()
