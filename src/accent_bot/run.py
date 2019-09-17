@@ -6,6 +6,8 @@ import logging
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
+from accent_bot.utils import get_credentials
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -96,9 +98,9 @@ def get_bot_id():
     read a json formatted credentials json and return to bot id
     :return bot_id:
     """
-    with open("credentials.json") as f:
-        data = json.load(f)
-        return data["bot_id"]
+    # TODO - find a general location for the credentials file
+    data = get_credentials()
+    return data["bot_id"]
 
 
 def main():
