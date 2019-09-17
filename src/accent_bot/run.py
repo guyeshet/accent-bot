@@ -101,20 +101,10 @@ class AccentBot:
         context.bot.send_voice(chat_id=chat_id, voice=open(audio, 'rb'))
 
 
-def get_bot_id():
-    """
-    read a json formatted credentials json and return to bot id
-    :return bot_id:
-    """
-    # TODO - find a general location for the credentials file
-    data = get_credentials()
-    return data["bot_id"]
-
-
 def main():
 
     # read the config file
-    bot_id = get_bot_id()
+    bot_id = from_env("BOT_ID", "XXXX")
 
     # create the bot updates
     updater = Updater(bot_id, use_context=True)
