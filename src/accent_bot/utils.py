@@ -2,6 +2,11 @@ import json
 import os
 from pathlib import Path
 
+def from_env(name, default, bool=False):
+    val = os.getenv(name, default)
+    if val.lower() in ("false", "true"):
+        return val.lower() == "true"
+    return os.getenv(name, default)
 
 def get_project_root() -> Path:
     """Returns project root folder."""

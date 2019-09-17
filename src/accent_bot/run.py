@@ -1,18 +1,20 @@
 import json
 import random
-
 import requests
 import logging
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-from accent_bot.utils import get_credentials
+from accent_bot.utils import get_credentials, from_env
+
+PREDICTION_API = from_env("PREDICTION_API", "http://34.89.217.69:8080")
+PREDICTION_URL = PREDICTION_API + "/bot"
+
+HEADERS = {'content-type': 'application/json'}
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
-
-PREDICTION_URL = "http://35.198.123.215:8080/bot"
-HEADERS = {'content-type': 'application/json'}
 
 
 class AccentBot:
@@ -30,13 +32,14 @@ class AccentBot:
     def echo(self, bot, job):
         raise NotImplemented
 
-    def receive_voice_message(self, bot, update, job_queue):
+    # def receive_voice_message(self, bot, update, job_queue):
+    @staticmethod
+    def receive_voice_message(update: Update, context: CallbackContext):
         """
         This method is called every time a voice message is sent
         we will use it to check the accent prediction
-        :param bot:
         :param update:
-        :param job_queue:
+        :param context:
         :return:
         """
         # get the voice relevant params
@@ -45,33 +48,38 @@ class AccentBot:
         voice = update.message.voice.get_file()
 
         # puts the received voice in the queue to handle the prediction
-        job_queue.run_once(self.handle_prediction, 0, context=[chat_id, voice])
+        context.job_queue.run_once(AccentBot.handle_prediction, 0, context=[chat_id, voice])
 
-    def handle_prediction(self, bot, job):
+    @staticmethod
+    def handle_prediction(context):
 
         # unpack the context variables
-        chat_id, voice = job.context
+        chat_id, voice = context.job.context
         data = {"path": voice.file_path}
 
         text = "Waiting for the response"
-        bot.send_message(chat_id=chat_id, text=text)
+        context.bot.send_message(chat_id=chat_id, text=text)
 
         # post the data to the prediction server and wait for response
         r = requests.post(PREDICTION_URL,
                           data=json.dumps(data),
                           headers=HEADERS)
 
-        # parse the received response to check prediction status
-        response_dict = r.json()
-        status = int(response_dict.get("predictions"))
+        if not r.ok:
+            text = "The server encountered an error, try again"
 
-        # 0 is a correct classification
-        if status == 0:
-            text = "Success!"
         else:
-            text = "No there yet... Try again!"
+            # parse the received response to check prediction status
+            response_dict = r.json()
+            status = int(response_dict.get("predictions"))
 
-        bot.send_message(chat_id=chat_id, text=text)
+            # 0 is a correct classification
+            if status == 0:
+                text = "Success!"
+            else:
+                text = "No there yet... Try again!"
+
+        context.bot.send_message(chat_id=chat_id, text=text)
 
     def get_word(self):
         rand_word, attempt = random.choice(list(self.dictionary.items()))
@@ -81,7 +89,7 @@ class AccentBot:
         audio = "../audio/" + self.word + ".oga"
         return audio
 
-    def get_word_callback(self, bot, update, args=None):
+    def get_word_callback(self, update: Update, context: CallbackContext, args=None):
         if args is None:
             word = self.get_word()
         else:
@@ -89,8 +97,8 @@ class AccentBot:
         self.word = word
         audio = self.get_audio()
         chat_id = update.message.chat_id
-        bot.send_message(chat_id=chat_id, text=self.word)
-        bot.send_voice(chat_id=chat_id, voice=open(audio, 'rb'))
+        context.bot.send_message(chat_id=chat_id, text=self.word)
+        context.bot.send_voice(chat_id=chat_id, voice=open(audio, 'rb'))
 
 
 def get_bot_id():
@@ -132,3 +140,4 @@ def main():
 if __name__ == '__main__':
     # Run the bot
     main()
+
