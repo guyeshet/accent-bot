@@ -109,8 +109,7 @@ def main():
     bot_id = get_bot_id()
 
     # create the bot updates
-    updater = Updater(bot_id)
-
+    updater = Updater(bot_id, use_context=True)
     dp = updater.dispatcher
     accent_bot = AccentBot()
 

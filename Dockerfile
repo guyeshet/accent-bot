@@ -1,5 +1,10 @@
 FROM python:3-alpine
 
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH "${PYTHONPATH}:/app/src"
+
 WORKDIR /app
 
 # musl-dev provides libc, alpine-sdk provides make
@@ -11,6 +16,3 @@ RUN pip install -r requirements.txt
 RUN apk del .build-deps
 
 COPY . /app
-
-#EXPOSE 8006
-#CMD ["python", "json_head.py"]
