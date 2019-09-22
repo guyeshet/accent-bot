@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import requests
 import logging
@@ -6,7 +7,7 @@ import logging
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-from accent_bot.utils import from_env
+from accent_bot.utils import from_env, get_project_root
 
 PREDICTION_API = from_env("PREDICTION_API", "http://34.89.217.69:8080")
 PREDICTION_URL = PREDICTION_API + "/bot"
@@ -16,16 +17,23 @@ HEADERS = {'content-type': 'application/json'}
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
-STELLA_1 = "Please call Stella.  Ask her to bring these things with her from the store"
-STELLA_2 = "Six spoons of fresh snow peas, five thick slabs of blue cheese, and maybe a snack for her brother Bob."
-STELLA_3 = "We also need a small plastic snake and a big toy frog for the kids."
-STELLA_4 = "She can scoop these things into three red bags, and we will go meet her Wednesday at the train station."
+STELLA_SOUND = ["Please call Stella",
+                "Ask her to bring these things with her from the store",
+                "Six spoons of fresh snow peas",
+                "five thick slabs of blue cheese",
+                "and maybe a snack for her brother Bob",
+                "We also need a small plastic snake",
+                "and a big toy frog for the kids",
+                "She can scoop these things into three red bags",
+                "and we will go meet her Wednesday",
+                "at the train station",
+                ]
 
 
 class AccentBot:
 
     def __init__(self):
-        self.text_samples = [STELLA_1, STELLA_2, STELLA_3, STELLA_4]
+        self.text_samples = STELLA_SOUND
 
     def start(self, bot, update):
         text = "Hello! Ask for a new word to learn with /new_word"
@@ -84,11 +92,20 @@ class AccentBot:
 
         context.bot.send_message(chat_id=chat_id, text=text)
 
+    def get_sound(self, num, folder="english128"):
+        file_path = os.path.join(get_project_root(),
+                                 "sound",
+                                 folder,
+                                 "stella{}.wav".format(num))
+        return file_path
+
     def get_word_callback(self, update: Update, context: CallbackContext, args=None):
 
-        text = random.choice(self.text_samples)
+        num = random.randint(1, len(self.text_samples))
+        text = self.text_samples[num - 1]
         chat_id = update.message.chat_id
         context.bot.send_message(chat_id=chat_id, text=text)
+        context.bot.send_voice(chat_id=chat_id, voice=open(self.get_sound(num), 'rb'))
 
 
 def main():

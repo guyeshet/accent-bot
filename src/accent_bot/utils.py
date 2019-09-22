@@ -8,10 +8,10 @@ def from_env(name, default, bool=False):
         return val.lower() == "true"
     return os.getenv(name, default)
 
+
 def get_project_root() -> Path:
     """Returns project root folder."""
-    return Path(__file__).parent.parent.parent
-
+    return Path(__file__).parent.parent
 
 def get_credentials():
     root = get_project_root()
