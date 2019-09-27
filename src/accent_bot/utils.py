@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 
+
 def from_env(name, default, bool=False):
     val = os.getenv(name, default)
     if val.lower() in ("false", "true"):
@@ -13,8 +14,24 @@ def get_project_root() -> Path:
     """Returns project root folder."""
     return Path(__file__).parent.parent
 
+
 def get_credentials():
     root = get_project_root()
     cred_path = os.path.join(root, "credentials.json")
     with open(cred_path) as f:
         return json.load(f)
+
+
+prediction_api = {"usa": from_env("PREDICTION_API", "http://usa_predictor:8080"),
+                  "uk": from_env("PREDICTION_API", "http://uk_predictor:8080")}
+
+
+def prediction_url(language):
+    api_url = prediction_api[language]
+    return "/".join((api_url, "bot"))
+
+
+class AccentType:
+    USA = "usa"
+    UK = "uk"
+
