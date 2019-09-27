@@ -73,8 +73,8 @@ class AccentBot:
         chat_id, voice, target_language = context.job.context
         data = {"path": voice.file_path}
 
-        text = "Waiting for the response"
-        context.bot.send_message(chat_id=chat_id, text=text)
+        # text = "Waiting for the response"
+        # context.bot.send_message(chat_id=chat_id, text=text)
 
         # post the data to the prediction server and wait for response
         r = requests.post(prediction_url(target_language),
