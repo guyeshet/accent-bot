@@ -6,13 +6,11 @@ import logging
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-
-from accent_bot.utils import from_env, get_project_root
-
-PREDICTION_API = from_env("PREDICTION_API", "http://34.89.217.69:8080")
-PREDICTION_URL = PREDICTION_API + "/bot"
+from accent_bot.utils import from_env, get_project_root, prediction_url, AccentType
 
 HEADERS = {'content-type': 'application/json'}
+
+LANGUAGE = "language"
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -55,24 +53,29 @@ class AccentBot:
         """
         # get the voice relevant params
         chat_id = update.message.chat_id
+
         # details of the voice files (the file url is remote store on telegram)
         voice = update.message.voice.get_file()
 
+        target_language = context.user_data[LANGUAGE]
+
         # puts the received voice in the queue to handle the prediction
-        context.job_queue.run_once(AccentBot.handle_prediction, 0, context=[chat_id, voice])
+        context.job_queue.run_once(AccentBot.handle_prediction, 0, context=[chat_id,
+                                                                            voice,
+                                                                            target_language])
 
     @staticmethod
     def handle_prediction(context):
 
         # unpack the context variables
-        chat_id, voice = context.job.context
+        chat_id, voice, target_language = context.job.context
         data = {"path": voice.file_path}
 
         text = "Waiting for the response"
         context.bot.send_message(chat_id=chat_id, text=text)
 
         # post the data to the prediction server and wait for response
-        r = requests.post(PREDICTION_URL,
+        r = requests.post(prediction_url(target_language),
                           data=json.dumps(data),
                           headers=HEADERS)
 
@@ -108,6 +111,12 @@ class AccentBot:
         context.bot.send_voice(chat_id=chat_id, voice=open(self.get_sound(num), 'rb'))
 
 
+    def set_target_language(self, update: Update, context: CallbackContext, args=None):
+
+        context.user_data[LANGUAGE] = AccentType.USA
+        update.message.reply_text("Let's train your {} accent!".format(context.user_data[LANGUAGE]))
+
+
 def main():
 
     # read the config file
@@ -123,8 +132,11 @@ def main():
 
     # get the existing
     dp.add_handler(CommandHandler('text', accent_bot.get_word_callback, pass_args=True))
+    dp.add_handler(CommandHandler('language', accent_bot.set_target_language, pass_args=True))
 
-    audio_handler = MessageHandler(Filters.voice, accent_bot.receive_voice_message, pass_job_queue=True)
+    audio_handler = MessageHandler(Filters.voice,
+                                   accent_bot.receive_voice_message,
+                                   pass_job_queue=True)
     dp.add_handler(audio_handler)
 
     updater.start_polling()
