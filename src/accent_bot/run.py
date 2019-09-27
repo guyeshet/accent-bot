@@ -6,6 +6,8 @@ import logging
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+
+from accent_bot.strings import success_message, failure_message
 from accent_bot.utils import from_env, get_project_root, prediction_url, AccentType
 
 HEADERS = {'content-type': 'application/json'}
@@ -89,9 +91,9 @@ class AccentBot:
 
             # 0 is a correct classification
             if status == 0:
-                text = "Success!"
+                text = success_message()
             else:
-                text = "No there yet... Try again!"
+                text = failure_message()
 
         context.bot.send_message(chat_id=chat_id, text=text)
 
