@@ -59,7 +59,7 @@ class AccentBot:
         # details of the voice files (the file url is remote store on telegram)
         voice = update.message.voice.get_file()
 
-        target_language = context.user_data[LANGUAGE]
+        target_language = context.user_data.get(LANGUAGE, AccentType.USA)
 
         # puts the received voice in the queue to handle the prediction
         context.job_queue.run_once(AccentBot.handle_prediction, 0, context=[chat_id,
@@ -111,7 +111,6 @@ class AccentBot:
         chat_id = update.message.chat_id
         context.bot.send_message(chat_id=chat_id, text=text)
         context.bot.send_voice(chat_id=chat_id, voice=open(self.get_sound(num), 'rb'))
-
 
     def set_target_language(self, update: Update, context: CallbackContext, args=None):
 
