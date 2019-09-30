@@ -1,7 +1,7 @@
 import random
 import re
 
-from accent_bot.constants import AccentType
+from accent_bot.common import AccentType
 from accent_bot.utils import safe_list_get
 
 EMOJIES = {"usa_flag": "\U0001F1FA\U0001F1F8",

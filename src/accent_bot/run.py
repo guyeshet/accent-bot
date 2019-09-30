@@ -8,11 +8,12 @@ import logging
 from telegram import Update, ReplyKeyboardRemove, ReplyKeyboardMarkup, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
-from accent_bot.sound import get_sound
 from accent_bot.strings import STELLA_SOUND, server_failure, \
     get_text, LANGUAGES, language_regex, yes_no_regex, YES_NO
 from accent_bot.utils import from_env
-from accent_bot.constants import AccentType, CURRENT_SENTENCE_NUM, INVALID_SENTENCE, CURRENT_LANGUAGE, prediction_url
+from accent_bot.constants import CURRENT_SENTENCE_NUM, INVALID_SENTENCE, CURRENT_LANGUAGE, prediction_url, \
+    get_sound_file_path
+from accent_bot.common import AccentType
 
 HEADERS = {'content-type': 'application/json'}
 
@@ -156,7 +157,8 @@ def get_word_callback(update: Update, context: CallbackContext, args=None):
                              )
     # Send the relevant voice note
     context.bot.send_voice(chat_id=chat_id,
-                           voice=open(get_sound(num), 'rb'))
+                           voice=open(get_sound_file_path(num,
+                                                          get_language(context)), 'rb'))
 
     return GET_VOICE
 
