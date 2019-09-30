@@ -112,11 +112,10 @@ def handle_prediction(update: Update, context: CallbackContext, voice, target_la
 
     # 0 is a correct classification
     if status == 0:
-        update.message.reply_text(get_text("success"))
+        update.message.reply_text("\n\n".join((get_text("success"),
+                                               get_text("new_word"))))
         # send a new sentence if the prediction was correct
         set_current_sentence(context, INVALID_SENTENCE)
-        update.message.reply_text(get_text("new_word"))
-
     else:
         update.message.reply_text(get_text("failure"))
 
