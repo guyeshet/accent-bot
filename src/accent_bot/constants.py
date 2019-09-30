@@ -20,7 +20,7 @@ def prediction_url(language):
 
 
 SOUND_FOLDERS = {AccentType.USA: "english128",
-                 AccentType.UK: "english128"}
+                 AccentType.UK: "english496"}
 
 
 def get_sound_file_path(num, language):
@@ -32,6 +32,7 @@ def get_sound_file_path(num, language):
 
     file_path = os.path.join(get_project_root(),
                              "sound",
+                             language,
                              sound_folder,
                              "stella{}.wav".format(num))
     return file_path
