@@ -1,5 +1,5 @@
 import random
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+import re
 
 from accent_bot.constants import AccentType
 from accent_bot.utils import safe_list_get
@@ -23,14 +23,22 @@ BOT_TEXT = {
     "welcome": ["Welcome to the Accent Bot!",
                 "I'm here to improve your accent {}".format(EMOJIES["world"]),
                 ],
-    "languages": "Which one would you like to improve?\n\n"
-                 "{} American Accent\n"
-                 "{} British Accent".format(EMOJIES["usa_flag"],
-                                            EMOJIES["uk_flag"]),
+    "languages": "Which accent would you like to improve?\n\n"
+                 "{} American\n"
+                 "{} British".format(EMOJIES["usa_flag"],
+                                     EMOJIES["uk_flag"]),
     "language_chosen": "Great! Let's train your {} accent",
+    "cancel": "Bye! I hope we continue training one day soon :)"
 }
 
 LANGUAGES = ['American', 'British']
+
+
+def language_regex():
+    lang_str = "|".join(LANGUAGES)
+    rgx = r'^({})$'.format(lang_str)
+    return re.compile(rgx, re.IGNORECASE)
+
 
 STELLA_SOUND = ["Please call Stella",
                 "Ask her to bring these things with her from the store",
@@ -52,9 +60,11 @@ def get_chat_id(context):
 
     return chat_id
 
+
 def get_language(context):
     accent_type = safe_list_get(context.job.context, 1, default=AccentType.USA)
     return AccentType.language(accent_type)
+
 
 def get_text(name, key=None):
     """
@@ -90,19 +100,6 @@ def welcome(context):
     key = safe_list_get(context.job.context, 1, 0)
     context.bot.send_message(chat_id=chat_id,
                              text=get_text("welcome", key))
-
-
-def choose_language(context):
-    chat_id = get_chat_id(context)
-    custom_keyboard = [LANGUAGES]
-
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard,
-                                       one_time_keyboard=True,
-                                       )
-    context.bot.send_message(chat_id=chat_id,
-                             text=get_text("languages"),
-                             reply_markup=reply_markup,
-                             )
 
 
 def get_language_choice(context):
