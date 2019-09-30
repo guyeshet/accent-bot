@@ -22,16 +22,8 @@ def get_credentials():
         return json.load(f)
 
 
-prediction_api = {"usa": from_env("PREDICTION_API", "http://usa_predictor:8080"),
-                  "uk": from_env("PREDICTION_API", "http://uk_predictor:8080")}
-
-
-def prediction_url(language):
-    api_url = prediction_api[language]
-    return "/".join((api_url, "bot"))
-
-
-class AccentType:
-    USA = "usa"
-    UK = "uk"
-
+def safe_list_get(l, idx, default):
+    try:
+        return l[idx]
+    except IndexError:
+        return default
