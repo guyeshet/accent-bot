@@ -7,7 +7,8 @@ import logging
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-from accent_bot.strings import success, failure, STELLA_SOUND, BOT_TEXT, welcome, choose_language
+from accent_bot.strings import success, failure, STELLA_SOUND, BOT_TEXT, welcome, choose_language, server_failure, \
+    get_language_choice
 from accent_bot.utils import from_env, get_project_root, prediction_url
 from accent_bot.constants import AccentType
 
@@ -23,14 +24,17 @@ class AccentBot:
 
     def __init__(self):
         self.text_samples = STELLA_SOUND
+        self.chosen_accent = AccentType.USA
 
     def start(self, update: Update, context: CallbackContext):
         # text = "Hello! Ask for a new word to learn with /new_word"
         chat_id = update.message.chat_id
         context.job_queue.run_once(welcome, 1, context=[chat_id, 0])
         context.job_queue.run_once(welcome, 3, context=[chat_id, 1])
-        context.job_queue.run_once(choose_language, 5, context=[chat_id, 1])
-        # context.job_queue.run_once(choose_language, 5, context=[chat_id, 1])
+        context.job_queue.run_once(choose_language, 5, context=[chat_id])
+
+        # needs to happen after the callaback from choose languages
+        # context.job_queue.run_once(get_language_choice, 7, context=[chat_id, self.chosen_accent])
 
     def echo(self, bot, job):
         raise NotImplemented
@@ -66,29 +70,27 @@ class AccentBot:
         data = {"path": voice.file_path,
                 }
 
-        # text = "Waiting for the response"
-        # context.bot.send_message(chat_id=chat_id, text=text)
-
         # post the data to the prediction server and wait for response
         r = requests.post(prediction_url(target_language),
                           data=json.dumps(data),
                           headers=HEADERS)
 
         if not r.ok:
-            text = "The server encountered an error, try again"
+            server_failure(context, chat_id)
+            return
 
+        # parse the received response to check prediction status
+        response_dict = r.json()
+        status = int(response_dict.get("predictions"))
+
+        # 0 is a correct classification
+        if status == 0:
+            success(context, chat_id)
         else:
-            # parse the received response to check prediction status
-            response_dict = r.json()
-            status = int(response_dict.get("predictions"))
+            failure(context, chat_id)
 
-            # 0 is a correct classification
-            if status == 0:
-                success(context, chat_id)
-            else:
-                failure(context, chat_id)
-
-    def get_sound(self, num, folder="english128"):
+    @staticmethod
+    def get_sound(num, folder="english128"):
         file_path = os.path.join(get_project_root(),
                                  "sound",
                                  folder,
@@ -138,4 +140,5 @@ def main():
 if __name__ == '__main__':
     # Run the bot
     main()
+
 

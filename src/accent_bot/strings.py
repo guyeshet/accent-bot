@@ -1,6 +1,7 @@
 import random
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
+from accent_bot.constants import AccentType
 from accent_bot.utils import safe_list_get
 
 EMOJIES = {"usa_flag": "\U0001F1FA\U0001F1F8",
@@ -8,6 +9,7 @@ EMOJIES = {"usa_flag": "\U0001F1FA\U0001F1F8",
            "world": "\U0001F30E"}
 
 BOT_TEXT = {
+    "server_failure": "The server encountered an error",
     "success": ["Well Done!",
                 "Excellent Job!",
                 "That was awesome!",
@@ -25,6 +27,7 @@ BOT_TEXT = {
                  "{} American Accent\n"
                  "{} British Accent".format(EMOJIES["usa_flag"],
                                             EMOJIES["uk_flag"]),
+    "language_chosen": "Great! Let's train your {} accent",
 }
 
 LANGUAGES = ['American', 'British']
@@ -49,6 +52,9 @@ def get_chat_id(context):
 
     return chat_id
 
+def get_language(context):
+    accent_type = safe_list_get(context.job.context, 1, default=AccentType.USA)
+    return AccentType.language(accent_type)
 
 def get_text(name, key=None):
     """
@@ -73,6 +79,11 @@ def failure(context, chat_id):
                              text=get_text("failure"))
 
 
+def server_failure(context, chat_id):
+    context.bot.send_message(chat_id=chat_id,
+                             text=get_text("server_failure"))
+
+
 def welcome(context):
     chat_id = get_chat_id(context)
     # get which welcome message it is
@@ -85,8 +96,20 @@ def choose_language(context):
     chat_id = get_chat_id(context)
     custom_keyboard = [LANGUAGES]
 
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard,
+                                       one_time_keyboard=True,
+                                       )
     context.bot.send_message(chat_id=chat_id,
                              text=get_text("languages"),
-                             reply_markup=reply_markup
+                             reply_markup=reply_markup,
+                             )
+
+
+def get_language_choice(context):
+    chat_id = get_chat_id(context)
+    # get the chosen language form the context
+    text = get_text("language_chosen").format(get_language(context))
+    
+    context.bot.send_message(chat_id=chat_id,
+                             text=text,
                              )
