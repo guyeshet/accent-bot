@@ -6,7 +6,9 @@ from accent_bot.utils import safe_list_get
 
 EMOJIES = {"usa_flag": "\U0001F1FA\U0001F1F8",
            "uk_flag": "\U0001F1EC\U0001F1E7",
-           "world": "\U0001F30E"}
+           "world": "\U0001F30E",
+           "smiley-hug": "\U0001F917",
+           "winking": "\U0001F609",}
 
 BOT_TEXT = {
     "server_failure": "The server encountered an error",
@@ -32,7 +34,10 @@ BOT_TEXT = {
                        "Read out loud each sentence as a voice message\n\n"
                        "Our AI Engine analyzes your voice and determines how good your accent is.",
     "cancel": "Bye! I hope we continue training one day soon :)",
-    "ready_to_start": "Are you ready to start?"
+    "ready_to_start": "Are you ready to start?",
+    "new_sentence": ["Ok, let's have a new phrase",
+                     "There you go {}".format(EMOJIES["winking"]),
+                     "Try this one {}".format(EMOJIES["smiley-hug"])]
 }
 
 LANGUAGES = ['American', 'British']

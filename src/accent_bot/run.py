@@ -5,7 +5,7 @@ import sys
 import requests
 import logging
 
-from telegram import Update, ReplyKeyboardRemove, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardRemove, ReplyKeyboardMarkup, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 
 from accent_bot.sound import get_sound
@@ -150,19 +150,15 @@ def get_word_callback(update: Update, context: CallbackContext, args=None):
 
     # send a stella sound sample
     context.bot.send_message(chat_id=chat_id,
-                             text=text,
-                             reply_markup=ReplyKeyboardRemove()
+                             text="*{}*".format(text),
+                             reply_markup=ReplyKeyboardRemove(),
+                             parse_mode=ParseMode.MARKDOWN
                              )
     # Send the relevant voice note
     context.bot.send_voice(chat_id=chat_id,
                            voice=open(get_sound(num), 'rb'))
 
     return GET_VOICE
-
-
-def set_target_language(update: Update, context: CallbackContext, args=None):
-    context.user_data[LANGUAGE] = AccentType.USA
-    update.message.reply_text("Let's train your {} accent!".format(context.user_data[LANGUAGE]))
 
 
 def error(update, context):
@@ -177,6 +173,12 @@ def cancel(update, context):
                               reply_markup=ReplyKeyboardRemove())
 
     return ConversationHandler.END
+
+
+def switch_sentence(update: Update, context: CallbackContext, args=None):
+    update.message.reply_text(text=get_text("new_sentence"))
+    set_current_sentence(context, INVALID_SENTENCE)
+    return get_word_callback(update, context)
 
 
 def main():
@@ -207,6 +209,7 @@ def main():
         fallbacks=[CommandHandler('cancel', cancel),
                    # Allow the user to switch the language in the conversation
                    CommandHandler('change', choose_language),
+                   CommandHandler('new', switch_sentence),
                    ],
         allow_reentry=True
     )
