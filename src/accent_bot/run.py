@@ -11,8 +11,8 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from accent_bot.sound import get_sound
 from accent_bot.strings import STELLA_SOUND, server_failure, \
     get_text, LANGUAGES, language_regex, yes_no_regex, YES_NO
-from accent_bot.utils import from_env, prediction_url
-from accent_bot.constants import AccentType, CURRENT_SENTENCE_NUM, INVALID_SENTENCE, CURRENT_LANGUAGE
+from accent_bot.utils import from_env
+from accent_bot.constants import AccentType, CURRENT_SENTENCE_NUM, INVALID_SENTENCE, CURRENT_LANGUAGE, prediction_url
 
 HEADERS = {'content-type': 'application/json'}
 

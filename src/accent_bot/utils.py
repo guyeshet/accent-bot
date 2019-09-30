@@ -1,7 +1,6 @@
 import json
 import os
 from pathlib import Path
-from uuid import uuid4
 
 
 def from_env(name, default, bool=False):
@@ -21,15 +20,6 @@ def get_credentials():
     cred_path = os.path.join(root, "credentials.json")
     with open(cred_path) as f:
         return json.load(f)
-
-
-prediction_api = {"usa": from_env("PREDICTION_API", "http://usa_predictor:8080"),
-                  "uk": from_env("PREDICTION_API", "http://uk_predictor:8080")}
-
-
-def prediction_url(language):
-    api_url = prediction_api[language]
-    return "/".join((api_url, "bot"))
 
 
 def safe_list_get(l, idx, default):
