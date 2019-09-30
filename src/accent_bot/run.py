@@ -17,8 +17,6 @@ from accent_bot.common import AccentType
 
 HEADERS = {'content-type': 'application/json'}
 
-LANGUAGE = "language"
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -84,7 +82,7 @@ def receive_voice_message(update: Update, context: CallbackContext):
     # details of the voice files (the file url is remote store on telegram)
     voice = update.message.voice.get_file()
 
-    target_language = context.user_data.get(LANGUAGE, AccentType.USA)
+    target_language = get_language(context)
 
     # puts the received voice in the queue to handle the prediction
     # context.job_queue.run_once(handle_prediction, 0, context=[chat_id,
