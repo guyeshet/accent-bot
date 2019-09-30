@@ -15,8 +15,12 @@ BOT_TEXT = {
     "success": ["Well Done!",
                 "Excellent Job!",
                 "That was awesome!",
-                "Great, spot on!"
+                "Great, spot on!",
                 ],
+    "new_word": ["Let's try something else",
+                 "Try this one now",
+                 "Here's another one for you",
+                 ],
     "failure": ["Still not there...",
                 "Almost there, try again",
                 "Not quite there...",

@@ -115,6 +115,8 @@ def handle_prediction(update: Update, context: CallbackContext, voice, target_la
         update.message.reply_text(get_text("success"))
         # send a new sentence if the prediction was correct
         set_current_sentence(context, INVALID_SENTENCE)
+        update.message.reply_text(get_text("new_word"))
+
     else:
         update.message.reply_text(get_text("failure"))
 
@@ -210,8 +212,8 @@ def main():
 
         fallbacks=[CommandHandler('cancel', cancel),
                    # Allow the user to switch the language in the conversation
-                   CommandHandler('change', choose_language),
-                   CommandHandler('new', switch_sentence),
+                   CommandHandler('set_language', choose_language),
+                   CommandHandler('new_word', switch_sentence),
                    ],
         allow_reentry=True
     )
