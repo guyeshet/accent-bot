@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from uuid import uuid4
 
 
 def from_env(name, default, bool=False):

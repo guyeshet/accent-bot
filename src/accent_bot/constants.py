@@ -1,11 +1,9 @@
 class AccentType:
-    USA = "usa"
-    UK = "uk"
+    USA = "American"
+    UK = "British"
 
-    display = {USA: "American",
-               UK: "British"}
 
-    @staticmethod
-    def language(accent_type):
-        return AccentType.display.get(accent_type, "")
+CURRENT_LANGUAGE = "current_lang"
+CURRENT_SENTENCE_NUM = "current_num"
+INVALID_SENTENCE = -1
 

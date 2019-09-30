@@ -27,17 +27,33 @@ BOT_TEXT = {
                  "{} American\n"
                  "{} British".format(EMOJIES["usa_flag"],
                                      EMOJIES["uk_flag"]),
-    "language_chosen": "Great! Let's train your {} accent",
-    "cancel": "Bye! I hope we continue training one day soon :)"
+    "language_chosen": "Great! Let's train your {} accent\n"
+                       "You will now get a list of sentences.\n"
+                       "Read out loud each sentence as a voice message\n\n"
+                       "Our AI Engine analyzes your voice and determines how good your accent is.",
+    "cancel": "Bye! I hope we continue training one day soon :)",
+    "ready_to_start": "Are you ready to start?"
 }
 
 LANGUAGES = ['American', 'British']
+YES_NO = ["Let's Go!"]
+
+
+def exact_words(words, insensitive=True):
+    lang_str = "|".join(words)
+    rgx = r'^({})$'.format(lang_str)
+    if insensitive:
+        return re.compile(rgx, re.IGNORECASE)
+    else:
+        return re.compile(rgx)
 
 
 def language_regex():
-    lang_str = "|".join(LANGUAGES)
-    rgx = r'^({})$'.format(lang_str)
-    return re.compile(rgx, re.IGNORECASE)
+    return exact_words(LANGUAGES)
+
+
+def yes_no_regex():
+    return exact_words(YES_NO)
 
 
 STELLA_SOUND = ["Please call Stella",
@@ -62,8 +78,7 @@ def get_chat_id(context):
 
 
 def get_language(context):
-    accent_type = safe_list_get(context.job.context, 1, default=AccentType.USA)
-    return AccentType.language(accent_type)
+    return safe_list_get(context.job.context, 1, default=AccentType.USA)
 
 
 def get_text(name, key=None):
