@@ -7,8 +7,9 @@ import logging
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-from accent_bot.strings import success_message, failure_message
-from accent_bot.utils import from_env, get_project_root, prediction_url, AccentType
+from accent_bot.strings import success, failure, STELLA_SOUND, BOT_TEXT, welcome, choose_language
+from accent_bot.utils import from_env, get_project_root, prediction_url
+from accent_bot.constants import AccentType
 
 HEADERS = {'content-type': 'application/json'}
 
@@ -17,28 +18,19 @@ LANGUAGE = "language"
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
-STELLA_SOUND = ["Please call Stella",
-                "Ask her to bring these things with her from the store",
-                "Six spoons of fresh snow peas",
-                "five thick slabs of blue cheese",
-                "and maybe a snack for her brother Bob",
-                "We also need a small plastic snake",
-                "and a big toy frog for the kids",
-                "She can scoop these things into three red bags",
-                "and we will go meet her Wednesday",
-                "at the train station",
-                ]
-
 
 class AccentBot:
 
     def __init__(self):
         self.text_samples = STELLA_SOUND
 
-    def start(self, bot, update):
-        text = "Hello! Ask for a new word to learn with /new_word"
+    def start(self, update: Update, context: CallbackContext):
+        # text = "Hello! Ask for a new word to learn with /new_word"
         chat_id = update.message.chat_id
-        bot.send_message(chat_id=chat_id, text=text)
+        context.job_queue.run_once(welcome, 1, context=[chat_id, 0])
+        context.job_queue.run_once(welcome, 3, context=[chat_id, 1])
+        context.job_queue.run_once(choose_language, 5, context=[chat_id, 1])
+        # context.job_queue.run_once(choose_language, 5, context=[chat_id, 1])
 
     def echo(self, bot, job):
         raise NotImplemented
@@ -71,7 +63,8 @@ class AccentBot:
 
         # unpack the context variables
         chat_id, voice, target_language = context.job.context
-        data = {"path": voice.file_path}
+        data = {"path": voice.file_path,
+                }
 
         # text = "Waiting for the response"
         # context.bot.send_message(chat_id=chat_id, text=text)
@@ -91,11 +84,9 @@ class AccentBot:
 
             # 0 is a correct classification
             if status == 0:
-                text = success_message()
+                success(context, chat_id)
             else:
-                text = failure_message()
-
-        context.bot.send_message(chat_id=chat_id, text=text)
+                failure(context, chat_id)
 
     def get_sound(self, num, folder="english128"):
         file_path = os.path.join(get_project_root(),

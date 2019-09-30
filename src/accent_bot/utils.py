@@ -31,7 +31,8 @@ def prediction_url(language):
     return "/".join((api_url, "bot"))
 
 
-class AccentType:
-    USA = "usa"
-    UK = "uk"
-
+def safe_list_get(l, idx, default):
+    try:
+        return l[idx]
+    except IndexError:
+        return default
